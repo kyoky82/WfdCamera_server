@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+android:gravity="center"
+                android:orientation="vertical">
+
+    <LinearLayout android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+
+
+        <Button android:id="@+id/search_device_server" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="等待客户端的申请连接"
+                android:clickable="false"
+        />
+        <Button android:id="@+id/stop_search_device_server" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="停止搜索设备"
+        />
+        <Button
+            android:id="@+id/stop_connect_server" android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="断开连接"
+        />
+        <Button android:id="@+id/become_server" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="成为服务器"
+                android:visibility="gone"/>
+        <Button android:id="@+id/recevie_data" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="服务器状态："
+        />
+
+        <TextView android:id="@+id/tv_trans_file_server" android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="传输文件的状态："
+        />
+
+        <ImageView android:layout_width="match_parent" android:layout_height="2dp"
+                   android:background="#000000"
+
+        />
+        <android.support.v7.widget.RecyclerView android:id="@+id/devices_server"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+
+
+    <SurfaceView android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/surface_view"
+
+    android:visibility="gone"
+    />
+
+
+
+
+
+</RelativeLayout>
