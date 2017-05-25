@@ -212,7 +212,6 @@ public class MainActivity
                                              handler.post(new Runnable() {
                                                  @Override
                                                  public void run() {
-
                                                      mBtn_recevier_data.setText("服务器状态:服务器已经被移除");
                                                      mBtn_search.setText("点击创建服务器");
                                                      mBtn_search.setClickable(true);
@@ -231,18 +230,15 @@ public class MainActivity
                                                      }
                                                  }
                                              });
-
                                              break;
                                          case "serverReceiving":
                                              handler.post(new Runnable() {
                                                  @Override
                                                  public void run() {
-
                                                      mTv_recevie_file.setText("传输文件的状态：接受文件中");
                                                      //重新执行一次等待的任务
                                                  }
                                              });
-
                                              break;
                                          case "waitingConnect":
                                              handler.post(new Runnable() {
@@ -257,7 +253,6 @@ public class MainActivity
                                                      }
                                                  }
                                              });
-
                                              break;
                                          case "stopvideo":
                                              handler.post(new Runnable() {
@@ -272,9 +267,7 @@ public class MainActivity
                                             {
                                                 Log.d(TAG, "mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
                                                 if(mCameraDataReciverTask != null && mCameraDataReciverTask.getStatus() == AsyncTask.Status.RUNNING){
-                                                    Log.d(TAG, "+ mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
                                                     mCameraDataReciverTask.cancel(true);
-                                                    Log.d(TAG, "- mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
                                                 }
                                             }
 

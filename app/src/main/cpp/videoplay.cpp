@@ -93,8 +93,8 @@ Java_com_example_jareld_wfdcamera_1server_VideoPlayer_play(JNIEnv *env, jclass t
     int videoHeight = pCodecCtx->height;
 
     // 设置native window的buffer大小,可自动拉伸
-    LOGD("videoWidth : %d , videoHeight ：%d", videoWidth, videoHeight);
-    //1920 1080
+    LOGD("videoWidth : %d , videoHeight ：%d, winW:%d, winH:%d", pCodecCtx->width, pCodecCtx->height, ANativeWindow_getWidth(nativeWindow), ANativeWindow_getHeight(nativeWindow));
+    //1920 960
     ANativeWindow_setBuffersGeometry(nativeWindow, videoWidth, videoHeight,
                                      WINDOW_FORMAT_RGBA_8888);
     ANativeWindow_Buffer windowBuffer;
@@ -116,19 +116,19 @@ Java_com_example_jareld_wfdcamera_1server_VideoPlayer_play(JNIEnv *env, jclass t
 
     // Determine required buffer size and allocate buffer
     // buffer中数据就是用于渲染的,且格式为RGBA
-    int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGBA, pCodecCtx->width, pCodecCtx->height, 1);
+    int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGBA, videoWidth, videoHeight, 1);
     uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     av_image_fill_arrays(pFrameRGBA->data, pFrameRGBA->linesize, buffer, AV_PIX_FMT_RGBA,
-                         pCodecCtx->width, pCodecCtx->height, 1);
+                         videoWidth, videoHeight, 1);
 
     // 由于解码出来的帧格式不是RGBA的,在渲染之前需要进行格式转换
     struct SwsContext *sws_ctx = sws_getContext(pCodecCtx->width,
                                                 pCodecCtx->height,
                                                 pCodecCtx->pix_fmt,
-                                                pCodecCtx->width,
-                                                pCodecCtx->height,
+                                                videoWidth, //videoWidth, //pCodecCtx->width,
+                                                videoHeight, //videoHeight, //pCodecCtx->height,
                                                 AV_PIX_FMT_RGBA,
-                                                SWS_BILINEAR,
+                                                SWS_FAST_BILINEAR, //SWS_FAST_BILINEAR, //SWS_BILINEAR,
                                                 NULL,
                                                 NULL,
                                                 NULL);
@@ -160,8 +160,8 @@ Java_com_example_jareld_wfdcamera_1server_VideoPlayer_play(JNIEnv *env, jclass t
 
                 int64_t transTicker = ((a8 << 16) + (a9 << 8) + a10) * 1000;
                 frameTicker = transTicker / 10;
-                if(frameTicker > 45000)
-                    frameTicker = FRAME_TICKER;
+                //if(frameTicker > 45000)
+                //    frameTicker = FRAME_TICKER;
 
                 LOGD("This packet will be dropped. a8 = 0x%x , a9 = 0x%x , a10 = 0x%x , transTicker = %lld, frameTicker:%d", a8, a9, a10, transTicker, frameTicker);
 
@@ -191,29 +191,33 @@ Java_com_example_jareld_wfdcamera_1server_VideoPlayer_play(JNIEnv *env, jclass t
                     LOGD("The frame flags is AV_PKT_FLAG_KEY: num = %d", frameNum);
                 }
 /*
-                currentTime = av_gettime();
-                if(lastTime > 0){
-                    sleepUs = (int) (frameTicker - (currentTime - lastTime));
-                    LOGD("av_usleep: sleepUs:%d, oddSleepUs:%d, frameTicker:%d, currentTime:%lld, lastTime:%lld",
-                         sleepUs, oddSleepUs, frameTicker, currentTime, lastTime);
+                {
+                    currentTime = av_gettime();
+                    if (lastTime > 0) {
+                        sleepUs = (int) (frameTicker - (currentTime - lastTime));
+                        LOGD("av_usleep: sleepUs:%d, oddSleepUs:%d, frameTicker:%d, currentTime:%lld, lastTime:%lld",
+                             sleepUs, oddSleepUs, frameTicker, currentTime, lastTime);
 
-                    if (sleepUs > 5000) {
-                        av_usleep(sleepUs);   // park.xu 20170516
-                    }else{
-                        //oddSleepUs += sleepUs;  // park.xu 20170522
+                        if (sleepUs > 5000) {
+                            av_usleep(sleepUs);   // park.xu 20170516
+                        } else {
+                            //oddSleepUs += sleepUs;  // park.xu 20170522
+                        }
                     }
+                    lastTime = av_gettime();
                 }
-                lastTime = av_gettime();
 */
-                // render too slowly, drop this frame
-            /*    if((oddSleepUs < -40000)){
-                    LOGD("render too slowly, drop this frame! oddSleepUs:%d", oddSleepUs);
-                    oddSleepUs += FRAME_TICKER;
-                    lastTime = 0;  // clear lastTime
+             /*   {
+                    // render too slowly, drop this frame
+                    if ((oddSleepUs < -40000)) {
+                        LOGD("render too slowly, drop this frame! oddSleepUs:%d", oddSleepUs);
+                        oddSleepUs += FRAME_TICKER;
+                        lastTime = 0;  // clear lastTime
 
-                    av_packet_unref(&packet);
-                    av_init_packet(&packet);
-                    continue;
+                        av_packet_unref(&packet);
+                        av_init_packet(&packet);
+                        continue;
+                    }
                 } */
 
                 // 1. lock native window buffer
@@ -233,11 +237,9 @@ Java_com_example_jareld_wfdcamera_1server_VideoPlayer_play(JNIEnv *env, jclass t
                 for (h = 0; h < videoHeight; h++) {
                     memcpy(dst + h * dstStride, src + h * srcStride, srcStride);
                 }
-                //memcpy(dst, src, videoWidth * videoHeight * 4);
-
                 ANativeWindow_unlockAndPost(nativeWindow);
 
-                {
+                {  // play speed control. frame rate is 25
                     currentTime = av_gettime();
                     if (lastTime > 0) {
                         sleepUs = (int) (frameTicker - (currentTime - lastTime));

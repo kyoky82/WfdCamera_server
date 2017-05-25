@@ -120,7 +120,7 @@ public class CameraDataReciverTask
             while (((len = inputStream.read(bys)) != -1) && !isCancelled()){  // park.xu 20170524   need check if the task is cancelled
              //   Log.d(TAG, "[lyc] doInBackground: " + isFirst);
                 if(isFirst){
-                    mHandler.sendEmptyMessageDelayed(STARTVIDEO , 2000);
+                    mHandler.sendEmptyMessageDelayed(STARTVIDEO , 1000);
                     isFirst = false;
                 }
 
