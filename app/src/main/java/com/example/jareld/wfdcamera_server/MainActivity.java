@@ -43,52 +43,6 @@ public class MainActivity
         extends AppCompatActivity
         implements View.OnClickListener, SurfaceHolder.Callback
 {
-    private static final int MY_WRITE_EXTERNAL_STORAGE = 123;
-    private Button mBtn_recevier_data;
-    private ProgressDialog discoverProgressDialog   = null;
-    private ProgressDialog connectingProgressDialog = null;
-    private Subscription mSubscription;
-    private TextView     mTv_recevie_file;
-
-    private   Collection<WifiP2pDevice> mDeviceList  ;
-    private static SurfaceHolder mSurfaceHolder;
-    private static SurfaceView mSurfaceView;
-    private View mLayout;
-    private CameraDataReciverTask mCameraDataReciverTask;
-
-    private void initView() {
-        mRcyc_devices = (RecyclerView) findViewById(R.id.devices_server);
-        mBtn_search = (Button) findViewById(R.id.search_device_server);
-        mBtn_stop_connect = (Button) findViewById(R.id.stop_connect_server);
-        mBtn_stop_search = (Button) findViewById(R.id.stop_search_device_server);
-        mBtn_become_server = (Button) findViewById(R.id.become_server);
-        mBtn_recevier_data = (Button) findViewById(R.id.recevie_data);
-
-        mTv_recevie_file = (TextView) findViewById(R.id.tv_trans_file_server);
-
-
-        mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.addCallback(this);
-
-    }
-
-    public static void playVideo(){
-        mSurfaceView.setVisibility(View.VISIBLE);
-        Thread thread = new Thread(){
-            @Override
-            public void run() {
-                super.run();
-                Log.d(TAG, "[lyc] run: before playVideo");
-                VideoPlayer.play(mSurfaceHolder.getSurface());
-                Log.d(TAG, "[lyc] run: after playVideo");
-                RxBus.getInstance().post(new UserEvent(1 , "stopvideo"));
-
-            }
-        };
-        thread.setPriority(Thread.MAX_PRIORITY);
-        thread.start();
-    }
     private static final String TAG = "ServerActivity";
     private RecyclerView                          mRcyc_devices;
     private Button                                mBtn_stop_connect;
@@ -105,6 +59,47 @@ public class MainActivity
     private Button                                mBtn_become_server;
     private boolean isServer = true;
     private String beforeConnectDevice;
+    private static final int MY_WRITE_EXTERNAL_STORAGE = 123;
+    private Button mBtn_recevier_data;
+    private ProgressDialog discoverProgressDialog   = null;
+    private ProgressDialog connectingProgressDialog = null;
+    private Subscription mSubscription;
+    private TextView     mTv_recevie_file;
+    private   Collection<WifiP2pDevice> mDeviceList  ;
+    private static SurfaceHolder mSurfaceHolder;
+    private static SurfaceView mSurfaceView;
+    private View mLayout;
+    private CameraDataReciverTask mCameraDataReciverTask;
+
+    private void initView() {
+        mRcyc_devices = (RecyclerView) findViewById(R.id.devices_server);
+        mBtn_search = (Button) findViewById(R.id.search_device_server);
+        mBtn_stop_connect = (Button) findViewById(R.id.stop_connect_server);
+        mBtn_stop_search = (Button) findViewById(R.id.stop_search_device_server);
+        mBtn_become_server = (Button) findViewById(R.id.become_server);
+        mBtn_recevier_data = (Button) findViewById(R.id.recevie_data);
+        mTv_recevie_file = (TextView) findViewById(R.id.tv_trans_file_server);
+        mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.addCallback(this);
+    }
+
+    public static void playVideo(){
+        mSurfaceView.setVisibility(View.VISIBLE);
+        Thread thread = new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                Log.d(TAG, "[lyc] run: before playVideo");
+                VideoPlayer.play(mSurfaceHolder.getSurface());
+                Log.d(TAG, "[lyc] run: after playVideo");
+                RxBus.getInstance().post(new UserEvent(1 , "stopvideo"));
+            }
+        };
+        thread.setPriority(Thread.MAX_PRIORITY);  // park.xu 20170524
+        thread.start();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,9 +120,6 @@ public class MainActivity
         initEvent();
         initRxBus();
 
-        Log.d(TAG, "System.currentTimeMillis:" + System.currentTimeMillis());
-        Log.d(TAG, "size of long:" + Long.SIZE);
-
         mLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -137,7 +129,6 @@ public class MainActivity
                 } else {
                     mLayout.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
                 }
-
             }
         });
         initSufaceView();
@@ -166,11 +157,9 @@ public class MainActivity
 
         }
     });
-
     }
 
     private void checKStoragePermission() {
-
         if (ContextCompat.checkSelfPermission(this,
                                               Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,
@@ -179,11 +168,9 @@ public class MainActivity
             ActivityCompat.requestPermissions(this,
                                               new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.CAMERA},
                                               MY_WRITE_EXTERNAL_STORAGE);
-
         }else{
 
         }
-
     }
 
     @Override
@@ -196,29 +183,22 @@ public class MainActivity
         switch (requestCode){
             case MY_WRITE_EXTERNAL_STORAGE:
                 if(grantResults.length > 0 && grantResults[0]==PackageManager.PERMISSION_GRANTED && grantResults[1]==PackageManager.PERMISSION_GRANTED){
-
                 }else{
-
                     finish();
                 }
-
-
                 break;
         }
-
     }
 
     private void initSufaceView() {
-
         String name = Thread.currentThread().getName();
-        LogUtils.logInfo(TAG,"Thread name:",name+"。。");
+        Log.d(TAG,"Thread name:" + name);
         VideoPlayer.jni_ffmpeg_setVersion();
     }
 
     String preTransFileName = null;
 
     private void initRxBus() {
-
         mSubscription = RxBus.getInstance()
                              .toObserverable(UserEvent.class)
                              .subscribe(new Action1<UserEvent>() {
@@ -249,14 +229,11 @@ public class MainActivity
                                                      } else {
                                                          mTv_recevie_file.setText("传输文件的状态：传输完成:");
                                                      }
-
                                                  }
                                              });
 
-
                                              break;
                                          case "serverReceiving":
-
                                              handler.post(new Runnable() {
                                                  @Override
                                                  public void run() {
@@ -266,10 +243,8 @@ public class MainActivity
                                                  }
                                              });
 
-
                                              break;
                                          case "waitingConnect":
-
                                              handler.post(new Runnable() {
                                                  @Override
                                                  public void run() {
@@ -283,7 +258,6 @@ public class MainActivity
                                                  }
                                              });
 
-
                                              break;
                                          case "stopvideo":
                                              handler.post(new Runnable() {
@@ -291,32 +265,40 @@ public class MainActivity
                                                  public void run() {
                                                      Log.d(TAG, "[lyc] stopvideo - set view gone");
                                                      mSurfaceView.setVisibility(View.GONE);
-
                                                  }
                                              });
+
+                                            // park.xu 20170524   When stop video, we must cancel data receiver task.
+                                            {
+                                                Log.d(TAG, "mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
+                                                if(mCameraDataReciverTask != null && mCameraDataReciverTask.getStatus() == AsyncTask.Status.RUNNING){
+                                                    Log.d(TAG, "+ mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
+                                                    mCameraDataReciverTask.cancel(true);
+                                                    Log.d(TAG, "- mCameraDataReciverTask status:" + mCameraDataReciverTask.getStatus());
+                                                }
+                                            }
 
                                              mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
                                                  @Override
                                                  public void onSuccess() {
-
+                                                    Log.d(TAG, "cancelConnect success");
                                                  }
 
                                                  @Override
                                                  public void onFailure(int reason) {
-
+                                                     Log.d(TAG, "cancelConnect failure");
                                                  }
                                              });
 
                                              mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
-
                                                  @Override
                                                  public void onSuccess() {
-
+                                                     Log.d(TAG, "createGroup success");
                                                  }
 
                                                  @Override
                                                  public void onFailure(int reason) {
-
+                                                     Log.d(TAG, "createGroup failure");
                                                  }
                                              });
                                              break;
@@ -324,7 +306,6 @@ public class MainActivity
                                  }
                              });
     }
-
 
     private void initReceiver() {
         mManager = (WifiP2pManager) getSystemService(WIFI_P2P_SERVICE);
@@ -334,10 +315,7 @@ public class MainActivity
         mPeerListListener = new WifiP2pManager.PeerListListener() {
             @Override
             public void onPeersAvailable(WifiP2pDeviceList peers) {
-                LogUtils.logInfo(TAG,
-                                 "onPeersAvailable",
-                                 "::" + peers.getDeviceList()
-                                             .size());
+                Log.d(TAG, "onPeersAvailable" + peers.getDeviceList().size());
                 if (mPeerLists != null) {
                     mPeerLists.clear();
                 }
@@ -353,8 +331,6 @@ public class MainActivity
                     map.put("name", wifiP2pDevice.deviceName);
                     map.put("address", wifiP2pDevice.deviceAddress);
                     mPeerLists.add(map);
-
-
                 }
 
                 DeviceAdapter adapter = new DeviceAdapter(mPeerLists, isServer);
@@ -384,20 +360,13 @@ public class MainActivity
                 //这是申请连接后的回调
                 mInfo = info;
 
-                LogUtils.logInfo(TAG,
-                                 "[lyc] onConnectionInfoAvailable",
-                                 mInfo.groupOwnerAddress + "info.isGroupOwner" + info.isGroupOwner);
+                Log.d(TAG, "[lyc] onConnectionInfoAvailable"  + mInfo.groupOwnerAddress + "info.isGroupOwner" + info.isGroupOwner);
 
                 ///192.168.49.1info.isGroupOwnertrue
-
                 if (info.groupFormed && info.isGroupOwner) {
 
                     //说明是服务端
-                    LogUtils.logInfo(TAG, "[lyc] onConnectionInfoAvailable", "This is server, accept data");
-
-
-
-
+                    Log.d(TAG, "[lyc] onConnectionInfoAvailable: This is server, accept data");
 
                     if (mDeviceList == null) {
                         Log.d(TAG, "onConnectionInfoAvailable:mDeviceList == null ");
@@ -412,8 +381,6 @@ public class MainActivity
                                 mBtn_recevier_data.setText("服务器状态:连接成功，服务器（IP）:"  + "申请连接设备：" + wifiP2pDevice.deviceName);
                                 Log.d(TAG,
                                       "[lyc] onConnectionInfoAvailable: " + wifiP2pDevice.deviceName + "::" + wifiP2pDevice.status);
-
-
                             }
                         }
 
@@ -421,19 +388,29 @@ public class MainActivity
                                     @Override
                                     public void run() {
                                         mBtn_recevier_data.performClick();
-
-
                                     }
                                 }, 500);
 
-
                         //到了这里说明  一个也没有连接上
                         mBtn_recevier_data.setText("服务器状态:已经创建好服务器（等待连接）:" + info.groupOwnerAddress);
-
-
                     }
+
                     mBtn_search.setText("服务器已经创建");
                     mBtn_search.setClickable(false);
+                    {  // The asyncTask just running once, so we must create a new task again when it is finished.
+                        if((mCameraDataReciverTask != null) && (mCameraDataReciverTask.getStatus() != AsyncTask.Status.RUNNING)) {
+                            Log.d(TAG, "closeServerScket");
+                            mCameraDataReciverTask.colseServerSocket();
+                            mCameraDataReciverTask = null;
+                        }
+
+                        if(mCameraDataReciverTask == null) {
+                            mCameraDataReciverTask = new CameraDataReciverTask();
+                            mCameraDataReciverTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        }
+                        Log.d(TAG, "[lyc] onConnectionInfoAvailable: mCameraDataReciverTask status" + mCameraDataReciverTask.getStatus());
+                    }
+                /*
                     if(mCameraDataReciverTask == null) {
                         mCameraDataReciverTask = new CameraDataReciverTask();
 
@@ -449,16 +426,11 @@ public class MainActivity
                         }
 
                     }
+                */
                 } else if (info.groupFormed) {
-
                     //说明是客户端
-
-
-                    LogUtils.logInfo(TAG, "[lyc] onConnectionInfoAvailable", "This is client, send data");
-
+                    Log.d(TAG, "[lyc] onConnectionInfoAvailable: This is client, send data");
                 }
-
-
             }
         };
         mReceiver = new WifiDerectBroadcastReceiver(mManager,
@@ -466,22 +438,9 @@ public class MainActivity
                                                     this,
                                                     mPeerListListener,
                                                     mConnectionInfoListener);
-
     }
 
     private void createConnet(String name, final String address) {
-        //点击 要创建连接
-        //        WifiP2pDevice device;
-        //        WifiP2pConfig       config = new WifiP2pConfig();
-        //        Log.i("xyz", address);
-        //
-        //        config.deviceAddress = address;
-        //        /*mac地址*/
-        //
-        //        config.wps.setup = WpsInfo.PBC;
-        //
-
-
         if (connectingProgressDialog != null && connectingProgressDialog.isShowing()) {
             connectingProgressDialog.dismiss();
         }
@@ -500,30 +459,22 @@ public class MainActivity
         config.wps.setup = WpsInfo.PBC;
         config.groupOwnerIntent = 15;
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-
             @Override
             public void onSuccess() {
                 if (connectingProgressDialog != null && connectingProgressDialog.isShowing()) {
                     connectingProgressDialog.dismiss();
                 }
-                Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT)
-                     .show();
-
+                Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
                 mBtn_recevier_data.setText("主动接受数据:连接到了P2P:" + address);
-
                 Log.d(TAG, "onSuccess: ");
             }
 
             @Override
             public void onFailure(int reason) {
                 Log.d(TAG, "onFailure: ");
-                Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT)
-                     .show();
-
+                Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
             }
         });
-
-
     }
 
     private void initFilter() {
@@ -533,7 +484,6 @@ public class MainActivity
         mFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
         mFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
     }
 
     private void initEvent() {
@@ -541,11 +491,7 @@ public class MainActivity
         mBtn_search.setOnClickListener(this);
         mBtn_stop_search.setOnClickListener(this);
         mBtn_become_server.setOnClickListener(this);
-
         mBtn_recevier_data.setOnClickListener(this);
-
-
-        // handler.postDelayed(runnable, 1000 * 60);
         mBtn_recevier_data.setText("主动接受数据:尚未连接到P2P");
     }
 
@@ -584,44 +530,20 @@ public class MainActivity
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: zheli youmeiyou ");
-
-
         unregisterReceiver(mReceiver);
-
+        if(mCameraDataReciverTask != null){
+            mCameraDataReciverTask.colseServerSocket();
+        }
     }
-
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-
             case R.id.search_device_server:
                 if (discoverProgressDialog != null && discoverProgressDialog.isShowing()) {
                     discoverProgressDialog.dismiss();
 
                 }
-                //                discoverProgressDialog = ProgressDialog.show(this, "搜索设备", "搜索中......", true, true,
-                //                                                             // cancellable
-                //                                                             new DialogInterface.OnCancelListener() {
-                //                                                                 @Override
-                //                                                                 public void onCancel(
-                //                                                                         DialogInterface dialog)
-                //                                                                 {
-                //                                                                     mBtn_stop_search.performClick();
-                //                                                                 }
-                //                                                             });
-                //                //start search device it can call wifireceiver :WIFI_P2P_DISCOVERY_CHANGED_ACTION
-                //                mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-                //                    @Override
-                //                    public void onSuccess() {
-                //                    }
-                //
-                //                    @Override
-                //                    public void onFailure(int reason) {
-                //                    }
-                //                });
-
-
                 mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
@@ -644,12 +566,9 @@ public class MainActivity
 
                 }
             });
-
-
                 break;
             case R.id.stop_search_device_server:
-
-                    MainActivity.playVideo();
+                    MainActivity.playVideo();  // ?
 
                 break;
             case R.id.stop_connect_server:
@@ -661,17 +580,13 @@ public class MainActivity
 
                     @Override
                     public void onFailure(int reason) {
-
                     }
                 });
                 break;
             case R.id.become_server:
-
                 break;
             case R.id.recevie_data:
-
                 //检查一下状态
-
                 for (WifiP2pDevice wifiP2pDevice : mDeviceList) {
                     if (wifiP2pDevice.deviceName.equals(beforeConnectDevice)) {
 
@@ -679,20 +594,10 @@ public class MainActivity
                             return;
                         }else{
                             mBtn_recevier_data.setText("服务器状态:已经创建好服务器（等待连接）:" + mInfo.groupOwnerAddress);
-
-
-
                             return;
-
-
                         }
-
-
-
                     }
                 }
-
-
                 break;
             default:
                 break;
@@ -714,7 +619,7 @@ public class MainActivity
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                LogUtils.logInfo(TAG, "run()", "Timmer is wrong");
+                Log.d(TAG, "run(): Timmer is wrong");
             }
         }
     };
@@ -776,19 +681,13 @@ public class MainActivity
 
         @Override
         public void run() {
-            LogUtils.logInfo(TAG, "Check the status of device's change", "status=" + mWifiDevice.status);
+            Log.d(TAG, "Check the status of device's change: status=" + mWifiDevice.status);
             if (mWifiDevice.status == WifiP2pDevice.CONNECTED) {
                 return;
             } else {
                 mBtn_recevier_data.setText("服务器状态:已经创建好服务器（等待连接）:" + mWifiInfo.groupOwnerAddress);
                 //这个状态如果做了改变就是已经离开了
-
-
-
-
             }
-
-
         }
     }
 

@@ -55,6 +55,7 @@ public class CameraDataReciverTask
     }
 
     private void createfile(){
+        Log.d(TAG, "createfile enter");
         File file = new File(path);
         if(file.exists()){
             file.delete();
@@ -73,7 +74,8 @@ public class CameraDataReciverTask
          */
     @Override
     protected void onPostExecute(String result) {
-
+        Log.d(TAG, "onPostExecute");
+        colseServerSocket();  // When tast finished, we must closed socket server.
     }
 
     /*
@@ -83,12 +85,17 @@ public class CameraDataReciverTask
      */
     @Override
     protected void onPreExecute() {
+        Log.d(TAG, "onPreExecute");
+    }
 
+    @Override
+    protected void onCancelled() {
+        Log.d(TAG, "onCancelled");
+        colseServerSocket();   // close socket server
     }
 
     @Override
     protected String doInBackground(Void... params) {
-
         mServerSocket = null;
 
         try {
@@ -110,10 +117,10 @@ public class CameraDataReciverTask
             byte[]      bys            = new byte[1024 * 100];
 
          boolean   isFirst = true;
-            while ((len = inputStream.read(bys)) != -1) {
+            while (((len = inputStream.read(bys)) != -1) && !isCancelled()){  // park.xu 20170524   need check if the task is cancelled
              //   Log.d(TAG, "[lyc] doInBackground: " + isFirst);
                 if(isFirst){
-                    mHandler.sendEmptyMessageDelayed(STARTVIDEO , 1000);
+                    mHandler.sendEmptyMessageDelayed(STARTVIDEO , 2000);
                     isFirst = false;
                 }
 
@@ -124,11 +131,12 @@ public class CameraDataReciverTask
                 outputStream.flush();
             }
 
-            Log.d(TAG, "[lyc] doInBackground: camera connect status:" + mClient.isConnected());
+            //Log.d(TAG, "[lyc] doInBackground: camera connect status:" + mClient.isConnected());
         } catch (Exception e) {
             e.printStackTrace();
             LogUtils.logInfo(TAG, "[lyc] doInBackground", "socket process exception");
         } finally {
+            Log.d(TAG, "doInBackground finally");
             try {
                 if (mServerSocket != null) {
                     mServerSocket.close();
@@ -140,8 +148,6 @@ public class CameraDataReciverTask
                 e.printStackTrace();
             }
         }
-
-
         return null;
     }
     public void colseServerSocket(){
@@ -149,6 +155,7 @@ public class CameraDataReciverTask
         if (mServerSocket != null) {
             try {
                 mServerSocket.close();
+                mServerSocket = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -156,6 +163,7 @@ public class CameraDataReciverTask
         if (mClient != null) {
             try {
                 mClient.close();
+                mClient = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }

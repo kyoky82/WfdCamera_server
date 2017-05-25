@@ -49,16 +49,10 @@ android:gravity="center"
 
     </LinearLayout>
 
-
-
     <SurfaceView android:layout_width="wrap_content" android:layout_height="wrap_content"
     android:id="@+id/surface_view"
 
     android:visibility="gone"
     />
-
-
-
-
 
 </RelativeLayout>
